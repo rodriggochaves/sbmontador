@@ -3,26 +3,49 @@
 #include <sstream>
 #include <string>
 
+// Classe
 class Preprocessador {
     std::ifstream file;
+    std::fstream processed_file;
   public:
     Preprocessador(std::string namefile);
-    void readfile();
+    void process_file();
+    std::string remove_comment(std::string line);
 };
 
+// Construtor do preprocessador
 Preprocessador::Preprocessador(std::string namefile) {
-  std::cout << "Construindo preprocessador\n";
+  std::string processed_namefile = namefile + "o";
+
   this->file.open(namefile);
+  this->processed_file.open(processed_namefile, std::fstream::out | 
+     std::ifstream::app);
 }
 
-void Preprocessador::readfile() {
+// lê o arquivo linha a linha
+void Preprocessador::process_file() {
   std::string line;
+  std::string newline;
 
   while(std::getline(this->file, line)) {
-    // TODO: explain what the hell this line do
-    // std::istringstream iss(line);
-    std::cout << line << '\n';
+    newline = this->remove_comment(line);
+    this->processed_file << newline;
   }
+}
+
+// recebe uma linha e remove os comentário da mesma.
+std::string Preprocessador::remove_comment(std::string line) {
+  std::string newline;
+
+  for (int i = 0; i < line.size(); ++i) {
+    if (line[i] == ';') {
+      break;
+    }
+    newline += line[i];
+  }
+  newline += '\n';
+
+  return newline;
 }
 
 int main(int argc, char const *argv[]) {
@@ -32,7 +55,7 @@ int main(int argc, char const *argv[]) {
   }
 
   Preprocessador preprocessador(argv[1]);
-  preprocessador.readfile();
+  preprocessador.process_file();
 
   return 0;
 }

@@ -15,3 +15,4 @@ execute: preprocessador
 clean:
 	rm -rf *.o
 	rm -rf preprocessador
+	rm -rf *.asmo
