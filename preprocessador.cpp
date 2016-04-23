@@ -8,7 +8,6 @@ class Preprocessador {
   public:
     Preprocessador(std::string namefile);
     void readfile();
-    void metodo();
 };
 
 Preprocessador::Preprocessador(std::string namefile) {
@@ -19,8 +18,9 @@ Preprocessador::Preprocessador(std::string namefile) {
 void Preprocessador::readfile() {
   std::string line;
 
-  while(std::getline(file, line)) {
-    std::istringstream iss(line);
+  while(std::getline(this->file, line)) {
+    // TODO: explain what the hell this line do
+    // std::istringstream iss(line);
     std::cout << line << '\n';
   }
 }
