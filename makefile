@@ -6,13 +6,11 @@ LIBS = -lstdc++ -Wall
 
 all: execute
 
-preprocessador:
-	$(CC) $(LIBS) preprocessador.cpp -o preprocessador
+ligador:
+	$(CC) $(LIBS) ligador.cpp -o ligador
 
-execute: preprocessador
-	./preprocessador meuprograma.asm
+execute: ligador
+	./ligador moduloa modulob
 
 clean:
-	rm -rf *.o
-	rm -rf preprocessador
-	rm -rf *.asmo
+	rm ligador
