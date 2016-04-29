@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <string>
 #include <regex>
+#include "nodo_tdg.hpp"
 
 class Ligador {
   std::fstream moduleA;
@@ -28,6 +28,8 @@ int main(int argc, char const *argv[])
   }
 
   Ligador ligador(argv[1], argv[2], argv[3]);
+
+  Node_TDG nodo("Pudim", 2);
 
   return 0;
 }

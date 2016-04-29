@@ -1,3 +1,5 @@
 *.o
 preprocessador
 *.asmo
+ligador
+*.gch
