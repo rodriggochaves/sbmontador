@@ -5,6 +5,10 @@ Node::Node(std::string symbol, int value) {
   this->value = value;
 }
 
+Node::Node() {
+  
+}
+
 int Node::get_value() {
   return this->value;
 }

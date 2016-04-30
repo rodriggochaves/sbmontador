@@ -10,27 +10,30 @@
 class Ligador {
   Module moduleA;
   Module moduleB;
-  std::list<Node> global_definition_table;
-  std::list<int> global_code;
+  std::vector<Node> global_definition_table;
+  std::vector<int> global_code;
   std::fstream fileA;
   std::fstream fileB;
   std::fstream out;
 public:
   Ligador(std::string fileA, std::string fileB, std::string out);
-  void load_list(std::fstream& file, std::list<int>& roll, 
-    std::string header);
-  void carrega_tabela(std::fstream& file, std::list<Node>& roll,
+  void load_list(std::fstream& file, std::list<int>& roll, std::string header);
+  void carrega_tabela(std::fstream& file, std::list<Node>& roll, 
     std::string header);
   void carrega_modulos();
   void create_global_defition_table();
   void create_global_code();
+  void resolve_cross_references();
+  void resolve_relative_address();
+  void print_code();
+  Node find_symbol(std::string wanted);
 };
 
 // Abre o ponteiro para os dois arquivos modulos.
 Ligador::Ligador(std::string fileA, std::string fileB, std::string out) {
   this->fileA.open(fileA + ".o");
   this->fileB.open(fileB + ".o");
-  this->out.open(out + ".e");
+  this->out.open(out + ".e", std::fstream::out);
 }
 
 void Ligador::load_list(std::fstream& file, std::list<int>& roll, 
@@ -102,9 +105,72 @@ void Ligador::create_global_defition_table() {
     // Salva nodo na tabela de definição global 
     this->global_definition_table.push_back(node);
   }
+}
 
-  for ( auto node : this->global_definition_table ) {
-    std::cout << node.get_symbol() << " " << node.get_value() << std::endl;
+Node Ligador::find_symbol(std::string wanted) {
+  Node null_node("", 0);
+
+  for (auto node : this->global_definition_table) {
+    if (wanted == node.get_symbol()) return node;
+  }
+  return null_node;
+}
+
+void Ligador::resolve_cross_references() {
+  std::string symbol;
+  int address;
+  int value;
+  Node definition_node;
+
+  for (auto use_node : this->moduleA.get_use_table()) {
+    // vê o simbolo na tabela de uso
+    symbol = use_node.get_symbol();
+
+    // recupera o endereço do simbolo no codigo
+    address = use_node.get_value() + this->moduleA.get_correction_factor();
+
+    // encontra simbolo na tabela de definicao
+    definition_node = this->find_symbol(symbol);
+
+    // ve o valor do simbolo na tabela de simbolos
+    value = definition_node.get_value();
+
+    // soma o valor do símbolo ao valor relativo no código
+    this->global_code[address] = this->global_code[address] + value;
+  }
+
+  for (auto use_node : this->moduleB.get_use_table()) {
+    // vê o simbolo na tabela de uso
+    symbol = use_node.get_symbol();
+
+    // recupera o endereço do simbolo no codigo
+    address = use_node.get_value() + this->moduleB.get_correction_factor();
+
+    // encontra simbolo na tabela de definicao
+    definition_node = this->find_symbol(symbol);
+
+    // ve o valor do simbolo na tabela de simbolos
+    value = definition_node.get_value();
+
+    // soma o valor do símbolo ao valor relativo no código
+    this->global_code[address] = this->global_code[address] + value;
+  }
+}
+
+void Ligador::resolve_relative_address() {
+
+  for( auto address : this->moduleA.get_relative() ) {
+    address = address + this->moduleA.get_correction_factor();
+
+    this->global_code[address] = this->global_code[address] 
+      + this->moduleA.get_correction_factor();
+  }
+
+  for( auto address : this->moduleB.get_relative() ) {
+    address = address + this->moduleB.get_correction_factor();
+
+    this->global_code[address] = this->global_code[address] 
+      + this->moduleB.get_correction_factor();
   }
 }
 
@@ -121,6 +187,12 @@ void Ligador::carrega_modulos() {
   this->load_list(this->fileB, this->moduleB.get_code(), "CODE");
 }
 
+void Ligador::print_code() {
+  for ( auto code : this->global_code ) {
+    this->out << code << " ";
+  }
+}
+
 int main(int argc, char const *argv[])
 {
   if (argc < 4) {
@@ -133,6 +205,9 @@ int main(int argc, char const *argv[])
   ligador.carrega_modulos();
   ligador.create_global_code();
   ligador.create_global_defition_table();
+  ligador.resolve_cross_references();
+  ligador.resolve_relative_address();
+  ligador.print_code();
 
   return 0;
 }

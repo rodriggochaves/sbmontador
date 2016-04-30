@@ -3,3 +3,4 @@ preprocessador
 *.asmo
 ligador
 *.gch
+*.e

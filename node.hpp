@@ -9,6 +9,7 @@ class Node
   int value;
 public:
   Node(std::string symbol, int value);
+  Node();
   int get_value();
   void set_value(int value);
   std::string get_symbol();
