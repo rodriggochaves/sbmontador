@@ -1,5 +1,5 @@
 # compilador
-CC = gcc
+CC = g++
 
 # bibliotecas
 LIBS = -std=c++11 -Wall
@@ -7,14 +7,19 @@ LIBS = -std=c++11 -Wall
 all: execute
 
 ligador:
-	$(CC) $(LIBS) nodo_tdg.hpp ligador.cpp -o ligador
+	$(CC) $(LIBS) -c nodo.cpp
+	$(CC) $(LIBS) -c module.cpp
+	$(CC) $(LIBS) -c ligador.cpp
+	$(CC) $(LIBS) -o ligador nodo.o module.o ligador.o
 
 execute: ligador
-	./ligador moduloa modulob
+	./ligador moduloa modulob saida
 
-nodo_tdg:
-	$(CC) $(LIBS) nodo_tdg.hpp
+nodo:
+	$(CC) $(LIBS) -c nodo.cpp
+
+module:
+	$(CC) $(LIBS) -c module.cpp
 
 clean:
 	rm ligador
-	rm nodo_tdg

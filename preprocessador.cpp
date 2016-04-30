@@ -51,7 +51,7 @@ std::string Preprocessador::remove_comment(std::string line) {
 }
 
 // recebe uma linha e remove multiplos espaços consecutivos
-std::string remove_multiple_spaces(std::string line) {
+std::string Preprocessador::remove_multiple_spaces(std::string line) {
   std::string newline;
 
 

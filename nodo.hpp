@@ -3,10 +3,12 @@
 
 // Aqui é representado um nodo da tabela de definicação global
 
-class Nodo_TDG
+class Nodo
 {
   std::string simbolo;
   int valor;
 public:
-  Nodo_TDG(std::string simbolo, int valor);
+  Nodo(std::string simbolo, int valor);
+  int getValor();
+  std::string getSimbolo();
 };
