@@ -17,7 +17,8 @@ class Preprocessador {
 
 // Construtor do preprocessador
 Preprocessador::Preprocessador(std::string namefile) {
-  std::string processed_namefile = namefile + "o";
+  namefile = namefile + ".asm";
+  std::string processed_namefile = namefile + ".o";
 
   this->file.open(namefile);
   this->processed_file.open(processed_namefile, std::fstream::out | 
@@ -30,7 +31,8 @@ void Preprocessador::process_file() {
   std::string newline;
 
   while(std::getline(this->file, line)) {
-    newline = this->remove_comment(line);
+    line = this->remove_comment(line);
+    newline = this->remove_multiple_spaces(line);
     this->processed_file << newline;
   }
 }
@@ -50,10 +52,17 @@ std::string Preprocessador::remove_comment(std::string line) {
   return newline;
 }
 
+bool Pre Both_are_spaces(char lhs, char rhs) { 
+  return (lhs == rhs) && (lhs == ' '); 
+}
+
 // recebe uma linha e remove multiplos espaços consecutivos
 std::string Preprocessador::remove_multiple_spaces(std::string line) {
   std::string newline;
 
+  std::string::iterator new_end = std::unique(line.begin(), line.end(), 
+    Both_are_spaces);
+  line.erase(new_end, line.end()); 
 
   return newline;
 }

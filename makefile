@@ -4,7 +4,11 @@ CC = g++
 # bibliotecas
 LIBS = -std=c++11 -Wall
 
-all: execute
+preprocessador: clean
+	$(CC) $(LIBS) -o preprocessador preprocessador.cpp
+
+execute_preprocessador:
+	./preprocessador meuprograma
 
 ligador:
 	$(CC) $(LIBS) -c node.cpp
@@ -12,7 +16,7 @@ ligador:
 	$(CC) $(LIBS) -c ligador.cpp
 	$(CC) $(LIBS) -o ligador node.o module.o ligador.o
 
-execute: ligador
+execute_ligador: ligador
 	./ligador moduloa modulob saida
 
 nodo:
@@ -22,4 +26,8 @@ module:
 	$(CC) $(LIBS) -c module.cpp
 
 clean:
-	rm ligador
+	rm -f ligador
+	rm -f ligador.o
+	rm -f module.o
+	rm -f node.o
+	rm -f preprocessador

@@ -1,12 +1,12 @@
 SECTION TEXT
 ROT: INPUT N1
-     COPY N1, N4 ; comentario qualquer
+     COPY    N1, N4 ; comentario qualquer
      COPY N2, N3
-     COPY N3, N3+1
+     COPY    N3, N3+1
    OUTPUT N3+1
      STOP
 
-SECTION DATA
+SECTION    DATA
 N1: SPACE
 N2: CONST -5
 N3: SPACE 2
