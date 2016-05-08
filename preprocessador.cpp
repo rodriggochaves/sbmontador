@@ -20,6 +20,7 @@ class Preprocessador {
   public:
     Preprocessador(std::string namefile);
     void process_file();
+    bool getDirectiveIF(std::string line, bool& block);
     std::string get_directive_EQU(std::string line);
     std::string translateEQU(std::string line);
     std::string remove_comment(std::string line);
@@ -46,19 +47,32 @@ Preprocessador::Preprocessador(std::string namefile) {
 void Preprocessador::process_file() {
   std::string line;
   std::string newLine;
+  bool isIF = false;
+  bool blocked = false;
 
   while(std::getline(this->file, line)) {
-    // deixa a linha mais bonita (sem comentátio e espaços)
-    line = this->remove_comment(line);
-    line = this->remove_multiple_spaces(line);
+    if( !blocked ) {
+      // deixa a linha mais bonita (sem comentátio e espaços)
+      line = this->remove_comment( line );
+      line = this->remove_multiple_spaces( line );
 
-    // diretiva EQU
-    newLine = this->get_directive_EQU(line);
-    newLine = this->translateEQU(newLine);
+      // diretiva EQU
+      line = this->get_directive_EQU( line );
 
-    // output
-    std::cout << newLine;
-    this->processed_file << newLine;
+      // diretiva IF
+      isIF = this->getDirectiveIF( line, blocked );
+
+      // Remove EQU
+      newLine = this->translateEQU( line );
+
+      if ( !isIF ) {
+        // output
+        // std::cout << newLine;
+        this->processed_file << newLine;
+      }
+    } else {
+      blocked = false;
+    }
   }
 }
 
@@ -162,6 +176,36 @@ std::string Preprocessador::translateEQU(std::string line) {
     }
   }
   return newLine;
+}
+
+bool Preprocessador::getDirectiveIF( std::string line, bool& block ) {
+  std::string token;
+  std::stringstream ss(line);
+  bool hasIF = false;
+
+  // verifica se na linha tem a diretiva IF.
+  while( ss >> token ) {
+    if ( this->lowercaseString(token) == "if" ) {
+      hasIF = true;
+    }
+  }
+
+  // se a linha tem IF, então pecorre a lista de EQU procurando se esse símbolo
+  // já foi definido.
+  if ( hasIF ) {
+    // defini-se true para caso a tabela de EQU esteja vazia, o que vai ocorrer
+    // que não temos nenhum simbolo definido ainda.
+    block = true;
+    for ( auto node : this->equ_list ) {
+      if ( node.symbol == token) {
+        block = false;
+      } else {
+        block = true;
+      }
+    }
+  }
+
+  return hasIF;
 }
 
 // main
