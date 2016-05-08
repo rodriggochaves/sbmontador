@@ -5,7 +5,9 @@ CC = g++
 LIBS = -std=c++11 -Wall
 
 preprocessador: clean
-	$(CC) $(LIBS) -o preprocessador preprocessador.cpp
+	$(CC) $(LIBS) -c node.cpp
+	$(CC) $(LIBS) -c preprocessador.cpp
+	$(CC) $(LIBS) -o preprocessador node.o preprocessador.o 
 
 execute_preprocessador:
 	./preprocessador meuprograma
@@ -30,4 +32,6 @@ clean:
 	rm -f ligador.o
 	rm -f module.o
 	rm -f node.o
+	rm -f meuprograma.asm.o
+	rm -f meuprograma2.asm.o
 	rm -f preprocessador
