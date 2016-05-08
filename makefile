@@ -10,7 +10,7 @@ preprocessador: clean
 	$(CC) $(LIBS) -o preprocessador node.o preprocessador.o 
 
 execute_preprocessador:
-	./preprocessador meuprograma
+	./preprocessador meuprograma2
 
 ligador:
 	$(CC) $(LIBS) -c node.cpp
