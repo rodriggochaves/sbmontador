@@ -7,24 +7,24 @@
 #include "Node.hpp"
 
 // EQU List Node
-struct equ_node {
+struct equNode {
   std::string symbol;
   std::string value;
-} typedef Equ_node;
+} typedef EquNode;
 
 // Classe
 class Preprocessador {
     std::ifstream file;
-    std::fstream processed_file;
-    std::vector<Equ_node> equ_list;
+    std::fstream processedFile;
+    std::vector<EquNode> equList;
   public:
     Preprocessador(std::string namefile);
-    void process_file();
+    void processFile();
     bool getDirectiveIF(std::string line, bool& block);
-    std::string get_directive_EQU(std::string line);
+    std::string getDirectiveEQU(std::string line);
     std::string translateEQU(std::string line);
-    std::string remove_comment(std::string line);
-    std::string remove_multiple_spaces(std::string line);
+    std::string removeComment(std::string line);
+    std::string removeMultipleSpaces(std::string line);
     std::string lowercaseString(std::string word);
     std::string removeChar(std::string word, char c);
 };
@@ -39,12 +39,12 @@ Preprocessador::Preprocessador(std::string namefile) {
     std::cout << "Erro na Abertura do arquivo" << std::endl;
     std::exit(1);
   }
-  this->processed_file.open(processed_namefile, std::fstream::out | 
+  this->processedFile.open(processed_namefile, std::fstream::out | 
      std::ifstream::app);
 }
 
 // lê o arquivo linha a linha e passa para as funções de tratamento
-void Preprocessador::process_file() {
+void Preprocessador::processFile() {
   std::string line;
   std::string newLine;
   bool isIF = false;
@@ -53,11 +53,11 @@ void Preprocessador::process_file() {
   while(std::getline(this->file, line)) {
     if( !blocked ) {
       // deixa a linha mais bonita (sem comentátio e espaços)
-      line = this->remove_comment( line );
-      line = this->remove_multiple_spaces( line );
+      line = this->removeComment( line );
+      line = this->removeMultipleSpaces( line );
 
       // diretiva EQU
-      line = this->get_directive_EQU( line );
+      line = this->getDirectiveEQU( line );
 
       // diretiva IF
       isIF = this->getDirectiveIF( line, blocked );
@@ -68,7 +68,7 @@ void Preprocessador::process_file() {
       if ( !isIF ) {
         // output
         // std::cout << newLine;
-        this->processed_file << newLine;
+        this->processedFile << newLine;
       }
     } else {
       blocked = false;
@@ -77,18 +77,18 @@ void Preprocessador::process_file() {
 }
 
 // recebe uma linha e remove os comentário da mesma.
-std::string Preprocessador::remove_comment(std::string line) {
-  std::string newline;
+std::string Preprocessador::removeComment(std::string line) {
+  std::string newLine;
 
   for (int i = 0; i < line.size(); ++i) {
     if (line[i] == ';') {
       break;
     }
-    newline += line[i];
+    newLine += line[i];
   }
-  newline += '\n';
+  newLine += '\n';
 
-  return newline;
+  return newLine;
 }
 
 std::string Preprocessador::removeChar(std::string word, char c) {
@@ -106,7 +106,7 @@ bool Both_are_spaces(char lhs, char rhs) {
 }
 
 // recebe uma linha e remove multiplos espaços consecutivos
-std::string Preprocessador::remove_multiple_spaces(std::string line) {
+std::string Preprocessador::removeMultipleSpaces(std::string line) {
   std::string newline;
 
   std::string::iterator new_end = std::unique(line.begin(), line.end(), 
@@ -129,7 +129,7 @@ std::string Preprocessador::lowercaseString(std::string word) {
   return word;
 }
 
-std::string Preprocessador::get_directive_EQU(std::string line) {
+std::string Preprocessador::getDirectiveEQU(std::string line) {
   std::string token;
   std::vector<std::string> tokenLine;
   bool hasEQU = false;
@@ -149,11 +149,11 @@ std::string Preprocessador::get_directive_EQU(std::string line) {
 
     tokenLine[0] = this->removeChar(tokenLine[0], ':');
 
-    Equ_node newNode;
+    EquNode newNode;
     newNode.symbol = tokenLine[0];
     newNode.value = tokenLine[2];
 
-    this->equ_list.push_back(newNode);
+    this->equList.push_back(newNode);
 
     return "";
   } else {
@@ -168,7 +168,7 @@ std::string Preprocessador::translateEQU(std::string line) {
   int position;
 
   while (ss >> token) {
-    for (auto node : this->equ_list) {
+    for (auto node : this->equList) {
       if (token == node.symbol) {
         position = newLine.find(node.symbol);
         newLine = line.replace(position, node.symbol.size(), node.value);
@@ -196,7 +196,7 @@ bool Preprocessador::getDirectiveIF( std::string line, bool& block ) {
     // defini-se true para caso a tabela de EQU esteja vazia, o que vai ocorrer
     // que não temos nenhum simbolo definido ainda.
     block = true;
-    for ( auto node : this->equ_list ) {
+    for ( auto node : this->equList ) {
       if ( node.symbol == token) {
         block = false;
       } else {
@@ -216,7 +216,7 @@ int main(int argc, char const *argv[]) {
   }
 
   Preprocessador preprocessador(argv[1]);
-  preprocessador.process_file();
+  preprocessador.processFile();
 
   return 0;
 }
