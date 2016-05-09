@@ -4,7 +4,7 @@
 #include <string>
 #include <regex>
 #include <list>
-#include "Node.hpp"
+#include "node.hpp"
 
 // EQU List Node
 struct equNode {
@@ -31,8 +31,8 @@ class Preprocessador {
 
 // Construtor do preprocessador
 Preprocessador::Preprocessador(std::string namefile) {
+  std::string processed_namefile = namefile + "Processado.asm";
   namefile = namefile + ".asm";
-  std::string processed_namefile = namefile + ".o";
 
   this->file.open(namefile);
   if (!this->file.good()) {
@@ -82,6 +82,7 @@ std::string Preprocessador::removeComment(std::string line) {
 
   for (int i = 0; i < line.size(); ++i) {
     if (line[i] == ';') {
+      newLine += '\n';
       break;
     }
     newLine += line[i];
