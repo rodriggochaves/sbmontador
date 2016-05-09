@@ -60,6 +60,8 @@ void Preprocessador::processFile() {
       line = this->getDirectiveEQU( line );
 
       // diretiva IF
+      // essa função tem um efeito colateral de alterar o arquivo de saída
+      // adicionando um espaço em branco no lugar do IF se encontrado.
       isIF = this->getDirectiveIF( line, blocked );
 
       // Remove EQU
@@ -196,6 +198,7 @@ bool Preprocessador::getDirectiveIF( std::string line, bool& block ) {
   if ( hasIF ) {
     // defini-se true para caso a tabela de EQU esteja vazia, o que vai ocorrer
     // que não temos nenhum simbolo definido ainda.
+    this->processedFile << std::endl;
     block = true;
     for ( auto node : this->equList ) {
       if ( node.symbol == token) {
