@@ -16,7 +16,7 @@ Ligador::Ligador(std::string fileA, std::string fileB, std::string out) {
 
 void Ligador::load_list(std::fstream& file, std::list<int>& roll, 
   std::string header) {
-   
+
     std::string line;
     std::string word;
 

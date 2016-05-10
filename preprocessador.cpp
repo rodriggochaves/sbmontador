@@ -14,7 +14,7 @@ Preprocessador::Preprocessador(std::string namefile) {
 
   this->file.open(namefile);
   if (!this->file.good()) {
-    std::cout << "Erro na Abertura do arquivo" << std::endl;
+    std::cout << "Erro na Abertura do arquivo: " << namefile << std::endl;
     std::exit(1);
   }
   this->processedFile.open(processed_namefile, std::fstream::trunc/* | 

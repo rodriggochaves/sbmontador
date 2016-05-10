@@ -7,7 +7,7 @@
 
 int main (int argc, char* argv[]){
 	if ((argc < 3) || (argc > 4)){
-		std::cout << "argumentos invalidos";
+		std::cout << "argumentos invalidos" << std::endl;
 		return 0;
 	}
 	
