@@ -4,30 +4,8 @@
 #include <string>
 #include <regex>
 #include <list>
-#include "node.hpp"
+#include "preprocessador.hpp"
 
-// EQU List Node
-struct equNode {
-  std::string symbol;
-  std::string value;
-} typedef EquNode;
-
-// Classe
-class Preprocessador {
-    std::ifstream file;
-    std::fstream processedFile;
-    std::vector<EquNode> equList;
-  public:
-    Preprocessador(std::string namefile);
-    void processFile();
-    bool getDirectiveIF(std::string line, bool& block);
-    std::string getDirectiveEQU(std::string line);
-    std::string translateEQU(std::string line);
-    std::string removeComment(std::string line);
-    std::string removeMultipleSpaces(std::string line);
-    std::string lowercaseString(std::string word);
-    std::string removeChar(std::string word, char c);
-};
 
 // Construtor do preprocessador
 Preprocessador::Preprocessador(std::string namefile) {
@@ -39,8 +17,8 @@ Preprocessador::Preprocessador(std::string namefile) {
     std::cout << "Erro na Abertura do arquivo" << std::endl;
     std::exit(1);
   }
-  this->processedFile.open(processed_namefile, std::fstream::out | 
-     std::ifstream::app);
+  this->processedFile.open(processed_namefile, std::fstream::trunc/* | 
+     std::ifstream::app*/);
 }
 
 // lê o arquivo linha a linha e passa para as funções de tratamento
@@ -60,8 +38,6 @@ void Preprocessador::processFile() {
       line = this->getDirectiveEQU( line );
 
       // diretiva IF
-      // essa função tem um efeito colateral de alterar o arquivo de saída
-      // adicionando um espaço em branco no lugar do IF se encontrado.
       isIF = this->getDirectiveIF( line, blocked );
 
       // Remove EQU
@@ -76,13 +52,15 @@ void Preprocessador::processFile() {
       blocked = false;
     }
   }
+  file.close();
+  processedFile.close();
 }
 
 // recebe uma linha e remove os comentário da mesma.
 std::string Preprocessador::removeComment(std::string line) {
   std::string newLine;
 
-  for (int i = 0; i < line.size(); ++i) {
+  for (unsigned int i = 0; i < line.size(); ++i) {
     if (line[i] == ';') {
       newLine += '\n';
       break;
@@ -126,7 +104,7 @@ std::string Preprocessador::removeMultipleSpaces(std::string line) {
 }
 
 std::string Preprocessador::lowercaseString(std::string word) {
-  for(int i = 0; i < word.size(); i++) {
+  for(unsigned int i = 0; i < word.size(); i++) {
     word[i] = std::tolower(word[i]);
   }
   return word;
@@ -198,7 +176,6 @@ bool Preprocessador::getDirectiveIF( std::string line, bool& block ) {
   if ( hasIF ) {
     // defini-se true para caso a tabela de EQU esteja vazia, o que vai ocorrer
     // que não temos nenhum simbolo definido ainda.
-    this->processedFile << std::endl;
     block = true;
     for ( auto node : this->equList ) {
       if ( node.symbol == token) {
@@ -212,15 +189,3 @@ bool Preprocessador::getDirectiveIF( std::string line, bool& block ) {
   return hasIF;
 }
 
-// main
-int main(int argc, char const *argv[]) {
-  if (argc < 2) {
-    std::cout << "Por favor, informe um nome de um arquivo\n";
-    return 0;
-  }
-
-  Preprocessador preprocessador(argv[1]);
-  preprocessador.processFile();
-
-  return 0;
-}

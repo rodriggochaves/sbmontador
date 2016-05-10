@@ -4,36 +4,14 @@
 #include <regex>
 #include <list>
 #include <sstream>
-#include "module.hpp"
+#include "ligador.hpp"
 
-
-class Ligador {
-  Module moduleA;
-  Module moduleB;
-  std::vector<Node> global_definition_table;
-  std::vector<int> global_code;
-  std::fstream fileA;
-  std::fstream fileB;
-  std::fstream out;
-public:
-  Ligador(std::string fileA, std::string fileB, std::string out);
-  void load_list(std::fstream& file, std::list<int>& roll, std::string header);
-  void carrega_tabela(std::fstream& file, std::list<Node>& roll, 
-    std::string header);
-  void carrega_modulos();
-  void create_global_defition_table();
-  void create_global_code();
-  void resolve_cross_references();
-  void resolve_relative_address();
-  void print_code();
-  Node find_symbol(std::string wanted);
-};
 
 // Abre o ponteiro para os dois arquivos modulos.
 Ligador::Ligador(std::string fileA, std::string fileB, std::string out) {
-  this->fileA.open(fileA + ".o");
-  this->fileB.open(fileB + ".o");
-  this->out.open(out + ".e", std::fstream::out);
+  this->fileA.open(fileA + ".txt");
+  this->fileB.open(fileB + ".txt");
+  this->out.open(out + ".txt", std::fstream::out);
 }
 
 void Ligador::load_list(std::fstream& file, std::list<int>& roll, 
@@ -193,21 +171,12 @@ void Ligador::print_code() {
   }
 }
 
-int main(int argc, char const *argv[])
-{
-  if (argc < 4) {
-    std::cout << "Por favor, informe nome de dois arquivos objetos." 
-      << std::endl;
-    return 0;
-  }
-
-  Ligador ligador(argv[1], argv[2], argv[3]);
-  ligador.carrega_modulos();
-  ligador.create_global_code();
-  ligador.create_global_defition_table();
-  ligador.resolve_cross_references();
-  ligador.resolve_relative_address();
-  ligador.print_code();
-
-  return 0;
+void Ligador::liga(){
+  carrega_modulos();
+  create_global_code();
+  create_global_defition_table();
+  resolve_cross_references();
+  resolve_relative_address();
+  print_code();
 }
+
