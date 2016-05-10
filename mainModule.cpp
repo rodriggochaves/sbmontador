@@ -40,9 +40,13 @@ int main (int argc, char* argv[]){
 		inFile2 = inFile2 + "Processado";
 		std::string outFile1 = inFile + "OTemp";
 		std::string outFile2 = inFile2 + "OTemp";
-		montador.montar(inFile, outFile1);
+		bool error;
+		error = montador.montar(inFile, outFile1);
 		Montador montador2;
-		montador2.montar(inFile2,outFile2);
+		error = error | montador2.montar(inFile2,outFile2);
+		if (error == true){
+			return 0;
+		}
 		Ligador ligador(outFile1, outFile2, outFile);
 		ligador.liga ();
 	}

@@ -623,19 +623,8 @@ bool Montador::writeSymbol (string arg, ostringstream& sout, int pc){
 }
 
 
-void Montador::montar(string sourceName, string objectName){
+bool Montador::montar(string sourceName, string objectName){
 	primeiraPassagem(sourceName);
 	segundaPassagem(sourceName, objectName);
+	return errorFlag;
 }
-/*
-int main(int argc, char* argv[]){
-
-std::string inFile = argv[1];
-std::string outFile = argv[2];
-
-Montador montador;
-montador.montar(inFile, outFile);
-
-return 0;
-}
-*/

@@ -4,7 +4,7 @@ class Montador{
 
 public:
 	Montador();
-	void montar(std::string sourceName, std::string objectName);
+	bool montar(std::string sourceName, std::string objectName);
 
 private:
 	struct SymbolTable *symbolTable;
