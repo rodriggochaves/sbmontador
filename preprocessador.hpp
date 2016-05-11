@@ -25,4 +25,6 @@ class Preprocessador {
     std::string removeMultipleSpaces(std::string line);
     std::string lowercaseString(std::string word);
     std::string removeChar(std::string word, char c);
+    bool symbolAlreadyDefinied(std::vector<EquNode> symbolList, 
+        std::string token);
 };

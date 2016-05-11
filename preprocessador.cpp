@@ -111,6 +111,17 @@ std::string Preprocessador::lowercaseString(std::string word) {
   return word;
 }
 
+bool Preprocessador::symbolAlreadyDefinied(std::vector<EquNode> symbolList, 
+        std::string token) {
+
+  for ( auto node : symbolList ) {
+    if (token == node.symbol) {
+      return true;
+    }
+  }
+  return false;
+}
+
 std::string Preprocessador::getDirectiveEQU(std::string line) {
   std::string token;
   std::vector<std::string> tokenLine;
@@ -134,8 +145,13 @@ std::string Preprocessador::getDirectiveEQU(std::string line) {
     EquNode newNode;
     newNode.symbol = tokenLine[0];
     newNode.value = tokenLine[2];
-
-    this->equList.push_back(newNode);
+    
+    if (!this->symbolAlreadyDefinied(this->equList, newNode.symbol)) {
+      this->equList.push_back(newNode);
+    } else {
+      std::cout << "Erro semântico: símbolo já definido" << std::endl;
+      std::exit(0);
+    }
     this->processedFile << std::endl;
 
     return "";

@@ -1,5 +1,6 @@
 ; comentario
 SECTION TEXT
+   JX: EQU 10
        OUTPUT N1
        IF JX
        JMP END
