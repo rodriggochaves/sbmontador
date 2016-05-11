@@ -32,7 +32,7 @@ main: clean
 		preprocessador.o module.o
 
 exe_main:
-	./main programaa programab a
+	./main programa2a programa2b a
 
 nodo:
 	$(CC) $(LIBS) -c nodo.cpp

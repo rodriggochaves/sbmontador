@@ -1,0 +1,14 @@
+TABLE USE
+mod_b 5
+r 7
+
+TABLE DEFINITION
+a 9
+b 10
+l1 6
+
+RELATIVE
+1 3 5 7 
+
+CODE
+12 9 12 10 5 0 13 1 14 0 0 
