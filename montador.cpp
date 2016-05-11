@@ -1,10 +1,14 @@
-
+/*
+ * Montador.cpp
+ *
+ *  Created on: Apr 27, 2016
+ *      Author: guido
+ */
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <stdlib.h>
-#include "montador.hpp"
 
 using namespace std;
 
@@ -24,6 +28,36 @@ struct Table{
 	struct Table *next;
 };
 
+class Montador{
+
+public:
+	Montador();
+	void montar(string sourceName, string objectName);
+	ifstream fstream;
+
+private:
+	struct SymbolTable *symbolTable;
+	struct Table *definitionTable;
+	struct Table *usageTable;
+	bool errorFlag;
+
+	void primeiraPassagem(string sourceName);
+	void segundaPassagem(string sourceName, string outName);
+	void getToken();
+	bool isLabel(string token);
+	void addSymbol(string token, int position);
+	void addToTable(string symbol,int position,struct Table*& table);
+	int getSymbolAddress(string token);
+	bool isExternalSymbol(string token);
+	int getOPCode(string token);
+	int OPSize(string token);
+	bool isDirective(string token);
+	int callDirective(string token);
+	void generateObject(int position);
+	int writeInstruction (int OPCode,istringstream& lstream,ostringstream& sout,int pc);
+	bool writeSymbol (string arg,ostringstream& sout,int pc);
+
+};
 
 Montador::Montador(){
 	symbolTable = NULL;
@@ -35,29 +69,28 @@ Montador::Montador(){
 
 void Montador::primeiraPassagem(string sourceName){
 	sourceName = sourceName + ".asm";
-	ifstream inStream;
-	inStream.open(sourceName.c_str(),ifstream::in);
-	if (inStream.is_open() == false){
+	ifstream fstream;
+	fstream.open(sourceName.c_str(),ifstream::in);
+	if (fstream.is_open() == false){
 		cout << "Erro: arquivo nao encontrado.\n";
 		errorFlag = true;
-		return;
 	}
 	string line;
 	int programCounter = 0;
 	int lineCounter = 0;
-	while (inStream.eof() == false){
+	while (fstream.eof() == false){
 
-		getline(inStream,line);/* le uma linha */
+		getline(fstream,line);/* le uma linha */
 		lineCounter++;
 		while ((line == "")||(line == "\r")){
-			getline(inStream,line);
+			getline(fstream,line);
 			lineCounter++;
-			if (inStream.eof()==true){
+			if (fstream.eof()==true){
 				break;
 			}
 		}
 
-		if(inStream.eof() == true){/* erro de leitura */
+		if(fstream.eof() == true){/* erro de leitura */
 			break;
 		}
 
@@ -102,6 +135,7 @@ void Montador::primeiraPassagem(string sourceName){
 				programCounter += 1;
 			}
 			else if (token == "extern"){
+				int i = 0;
 				struct SymbolTable *aux = symbolTable;
 				while (aux->next != NULL){
 					aux = aux->next;
@@ -145,39 +179,35 @@ void Montador::primeiraPassagem(string sourceName){
 		def = def->next;
 	}
 
-	inStream.close();
+	fstream.close();
 }
 
 void Montador::segundaPassagem(string sourceName, string outName){
 	sourceName = sourceName + ".asm";
-	ifstream inStream;
-	inStream.open(sourceName.c_str(),ifstream::in);
-	if (inStream.is_open() == false){
-		return;
-	}
-	
+	ifstream fstream;
+	fstream.open(sourceName.c_str(),ifstream::in);
+
 	ostringstream codeString;
 	ostringstream relative;
 
 	string line;
 	int programCounter = 0;
 	int lineCounter = 0;
-	int isModule = 0;
-	int hasSection = 0;
 
-	while (inStream.eof() == false){
 
-		getline(inStream,line);/* le uma linha */
+	while (fstream.eof() == false){
+
+		getline(fstream,line);/* le uma linha */
 		lineCounter++;
 		while (line == ""||(line == "\r")){
-			getline(inStream,line);
+			getline(fstream,line);
 			lineCounter++;
-			if (inStream.eof()==true){
+			if (fstream.eof()==true){
 				break;
 			}
 		}
 
-		if(inStream.eof() == true){/* erro de leitura */
+		if(fstream.eof() == true){/* erro de leitura */
 			break;
 		}
 
@@ -211,7 +241,7 @@ void Montador::segundaPassagem(string sourceName, string outName){
 			}
 			int aux = writeInstruction (OPCode,lstream,codeString,programCounter);
 			if (aux < 0){
-				cout << "Erro sintatico: construcao incorreta na linha " << lineCounter << ".\n";
+				cout << "Erro semantico: construcao incorreta na linha " << lineCounter << ".\n";
 				errorFlag = true;
 			}
 			else{
@@ -253,42 +283,15 @@ void Montador::segundaPassagem(string sourceName, string outName){
 			else if (token == "section"){
 				string token2;
 				lstream >> token2;
-				if (hasSection == 0){
-					if (token2 != "text"){
-						cout << "Erro semantico: Secao inadequada na linha " << lineCounter << ".\n";
-						errorFlag = true; 
-					}
-				}
-				if (hasSection == 1){
-					if (token2 != "data"){
-						cout << "Erro semantico: Secao inadequada na linha " << lineCounter << ".\n";
-						errorFlag = true;
-					}
-				}
-				if (hasSection >= 2){
-					cout << "Erro semantico: Secao inadequada na linha " << lineCounter << ".\n";
-					errorFlag = true;
-				}
-				hasSection++;
-					
 			}
-			else if (token == "begin"){
-				if (isModule != 0){
-					cout << "Erro semantico: inicio de modulo incorreto na linha " << lineCounter << ".\n";
-					errorFlag = true;
-				}
-				isModule++;
-			}
-			else if (token == "end"){
-				if (isModule != 1){
-					cout << "Erro semantico: fim de modulo incorreto na linha " << lineCounter << ".\n";
-					errorFlag = true;
-				}
-				isModule++;
+			else {
+				programCounter += 0;
 			}
 		}
 		else {
+			cout << "Erro sintatico: comando invalido na linha " << lineCounter << ".\n";
 			errorFlag = true;
+			return;
 		}
 	}
 	/* escreve no arquivo de saida */
@@ -298,29 +301,26 @@ void Montador::segundaPassagem(string sourceName, string outName){
 	}
 
 	outName = outName + ".txt";
-	ofstream out(outName.c_str(),fstream::trunc);
+	ofstream out(outName.c_str(),ifstream::trunc);
 
-	if (isModule == 2){
-		out << "TABLE USE\n";
-		struct Table *aux = usageTable;
-		while (aux != NULL){
-			out << aux->symbol << " " << aux->address << "\n";
-			aux = aux->next;
-		}
-		out << "\nTABLE DEFINITION\n";
-		aux = definitionTable;
-		while (aux != NULL){
-			out << aux->symbol << " " << aux->address << "\n";
-			aux = aux->next;
-		}
-
-		out << "\nRELATIVE\n";
-		out << relative.str();
-
-		out << "\nCODE\n";
+	out << "TABLE USE\n";
+	struct Table *aux = usageTable;
+	while (aux != NULL){
+		out << aux->symbol << " " << aux->address << "\n";
+		aux = aux->next;
 	}
+	out << "\nTABLE DEFINITION\n";
+	aux = definitionTable;
+	while (aux != NULL){
+		out << aux->symbol << " " << aux->address << "\n";
+		aux = aux->next;
+	}
+
+	out << "\nRELATIVE\n";
+	out << relative.str() << endl;
+
+	out << "\nCODE\n";
 	out << codeString.str();
-	out.close();
 }
 
 bool Montador::isLabel(string token){
@@ -623,8 +623,20 @@ bool Montador::writeSymbol (string arg, ostringstream& sout, int pc){
 }
 
 
-bool Montador::montar(string sourceName, string objectName){
+void Montador::montar(string sourceName, string objectName){
 	primeiraPassagem(sourceName);
 	segundaPassagem(sourceName, objectName);
-	return errorFlag;
+}
+
+
+int main (int argc, char* argv[]){
+	if (argc != 3){
+		cout << "argumentos invalidos";
+		return 0;
+	}
+	std::string inFile = argv[1];
+	std::string outFile = argv[2];
+	Montador montador;
+	montador.montar(inFile, outFile);
+	return 0;
 }
