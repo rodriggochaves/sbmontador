@@ -50,6 +50,7 @@ void Preprocessador::processFile() {
       }
     } else {
       blocked = false;
+      this->processedFile << std::endl;
     }
   }
   file.close();
