@@ -5,3 +5,5 @@ ligador
 *.gch
 *.e
 meuprograma2Processado.asm
+deploy/
+main

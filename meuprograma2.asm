@@ -1,3 +1,4 @@
+; comentario
 SECTION TEXT
        OUTPUT N1
        IF JX

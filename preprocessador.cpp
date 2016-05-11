@@ -63,7 +63,7 @@ std::string Preprocessador::removeComment(std::string line) {
 
   for (unsigned int i = 0; i < line.size(); ++i) {
     if (line[i] == ';') {
-      newLine += '\n';
+      // newLine += '\n';
       break;
     }
     newLine += line[i];
@@ -136,6 +136,7 @@ std::string Preprocessador::getDirectiveEQU(std::string line) {
     newNode.value = tokenLine[2];
 
     this->equList.push_back(newNode);
+    this->processedFile << std::endl;
 
     return "";
   } else {
@@ -175,6 +176,10 @@ bool Preprocessador::getDirectiveIF( std::string line, bool& block ) {
   // se a linha tem IF, então pecorre a lista de EQU procurando se esse símbolo
   // já foi definido.
   if ( hasIF ) {
+    // adiciona linha em branco para manter o ponteiro de erros do montador 
+    // correto
+    this->processedFile << std::endl;
+
     // defini-se true para caso a tabela de EQU esteja vazia, o que vai ocorrer
     // que não temos nenhum simbolo definido ainda.
     block = true;
