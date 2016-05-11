@@ -30,6 +30,7 @@ Montador::Montador(){
   definitionTable = NULL;
   usageTable = NULL;
   errorFlag = false;
+  dataPos = -1;
 }
 
 
@@ -45,6 +46,7 @@ void Montador::primeiraPassagem(string sourceName){
   string line;
   int programCounter = 0;
   int lineCounter = 0;
+  int hasSection = 0;
   while (inStream.eof() == false){
 
     getline(inStream,line);/* le uma linha */
@@ -101,6 +103,32 @@ void Montador::primeiraPassagem(string sourceName){
       else if (token == "const"){
         programCounter += 1;
       }
+      
+      else if (token == "section"){
+        string token2;
+        lstream >> token2;
+        if (hasSection == 0){
+          if (token2 != "text"){
+            cout << "Erro semantico: Secao inadequada na linha " << lineCounter << ".\n";
+            errorFlag = true; 
+          }
+        }
+        if (hasSection == 1){
+          if (token2 != "data"){
+            cout << "Erro semantico: Secao inadequada na linha " << lineCounter << ".\n";
+            errorFlag = true;
+          }
+          else {
+          	dataPos = programCounter;
+          }
+        }
+        if (hasSection >= 2){
+          cout << "Erro semantico: Secao inadequada na linha " << lineCounter << ".\n";
+          errorFlag = true;
+        }
+        hasSection++;
+      }
+      
       else if (token == "extern"){
         struct SymbolTable *aux = symbolTable;
         while (aux->next != NULL){
@@ -164,6 +192,7 @@ void Montador::segundaPassagem(string sourceName, string outName){
   int lineCounter = 0;
   int isModule = 0;
   int hasSection = 0;
+  
 
   while (inStream.eof() == false){
 
@@ -221,17 +250,24 @@ void Montador::segundaPassagem(string sourceName, string outName){
 
     else if (isDirective (token)){
       if (token == "space"){
-        int token2 = -1;
+        string token2 = "";
         lstream >> token2;
-        if (token2 == -1){
+        if (token2 == ""){
           codeString << "0 ";
           programCounter += 1;
         }else {
+          bool isNumber = (token2.find_first_not_of("0123456789") == string::npos);
+          if (isNumber==false){
+            cout << "Erro sintatico: construcao incorreta na linha " << lineCounter << ".\n";
+            errorFlag = true;
+          }
           int i;
-          for (i=0;i<token2;i++){
+          
+          int aux = stoi(token2,nullptr,10);
+          for (i=0;i<aux;i++){
             codeString << "0 ";
           }
-          programCounter += token2;
+          programCounter += aux;
         }
       }
       else if (token == "const"){
@@ -270,7 +306,6 @@ void Montador::segundaPassagem(string sourceName, string outName){
           errorFlag = true;
         }
         hasSection++;
-          
       }
       else if (token == "begin"){
         if (isModule != 0){
@@ -292,7 +327,11 @@ void Montador::segundaPassagem(string sourceName, string outName){
     }
   }
   /* escreve no arquivo de saida */
-
+  if (hasSection < 2){
+  	cout << "Erro semantico: nao ha secao text ou data.\n";
+  	errorFlag = true;
+  }
+  
   if (errorFlag == true){
     return;
   }

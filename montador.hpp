@@ -12,6 +12,8 @@ private:
 	struct Table *usageTable;
 	bool errorFlag;
 
+	int dataPos;
+
 	void primeiraPassagem(std::string sourceName);
 	void segundaPassagem(std::string sourceName, std::string outName);
 	void getToken();
