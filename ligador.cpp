@@ -136,19 +136,42 @@ void Ligador::resolve_cross_references() {
 }
 
 void Ligador::resolve_relative_address() {
+  bool isAlreadyResolved;
 
   for( auto address : this->moduleA.get_relative() ) {
-    address = address + this->moduleA.get_correction_factor();
+    for ( auto use_node : this->moduleA.get_use_table()) {
+      if (address == use_node.get_value()) {
+        isAlreadyResolved = true;
+        break;
+      } else {
+        isAlreadyResolved = false;
+      }
+    }
 
-    this->global_code[address] = this->global_code[address] 
-      + this->moduleA.get_correction_factor();
+    if (!isAlreadyResolved)    {
+      address = address + this->moduleA.get_correction_factor();
+
+      this->global_code[address] = this->global_code[address] 
+        + this->moduleA.get_correction_factor();
+    }
   }
 
   for( auto address : this->moduleB.get_relative() ) {
-    address = address + this->moduleB.get_correction_factor();
+    for ( auto use_node : this->moduleB.get_use_table()) {
+      if (address == use_node.get_value()) {
+        isAlreadyResolved = true;
+        break;
+      } else {
+        isAlreadyResolved = false;
+      }
+    }
 
-    this->global_code[address] = this->global_code[address] 
-      + this->moduleB.get_correction_factor();
+    if (!isAlreadyResolved) {
+      address = address + this->moduleB.get_correction_factor();
+
+      this->global_code[address] = this->global_code[address] 
+        + this->moduleB.get_correction_factor();
+    }
   }
 }
 

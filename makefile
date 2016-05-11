@@ -31,6 +31,9 @@ main: clean
 	$(CC) $(LIBS) -o main node.o mainModule.o montador.o ligador.o \
 		preprocessador.o module.o
 
+exe_main:
+	./main programaa programab a
+
 nodo:
 	$(CC) $(LIBS) -c nodo.cpp
 
