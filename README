@@ -1,0 +1,14 @@
+Trabalho 1 de Software Básico: Montador
+=======================================
+
+Alunos
+======
+Guido Dutra de Oliveira - 
+Rodrigo de Araujo Chaves - 13/0132624
+
+
+Instruções para compilação
+==========================
+Utilize o comando `make main` para realizar a compilação de todos as 
+dependências. Para executar o programa, execute com 
+`./main nomePrograma1 nomePrograma2 arquivoSaida`
