@@ -68,9 +68,11 @@ void Montador::primeiraPassagem(string sourceName){
       line.at(i) = tolower(line.at(i));
     }
     istringstream lstream(line);/* cria buffer para ler a linha de token em token */
-    string token;
+    string token = "";
 
-    lstream >> token;
+    if (!(lstream >> token)){
+    continue;
+    }
 
     if (token.at(0)==';'){
       continue;
@@ -154,6 +156,12 @@ void Montador::primeiraPassagem(string sourceName){
       continue;
     }
   }
+  
+  if (hasSection < 2){
+  	cout << "Erro semantico: nao ha secao text ou data.\n";
+  	errorFlag = true;
+  }
+  
   /* completa tabela de definicoes */
   struct Table *def = definitionTable;
   struct SymbolTable *sym = symbolTable;
@@ -191,8 +199,7 @@ void Montador::segundaPassagem(string sourceName, string outName){
   int programCounter = 0;
   int lineCounter = 0;
   int isModule = 0;
-  int hasSection = 0;
-  
+  bool hasStop = false;
 
   while (inStream.eof() == false){
 
@@ -215,9 +222,12 @@ void Montador::segundaPassagem(string sourceName, string outName){
       line.at(i) = tolower(line.at(i));
     }
     istringstream lstream(line);/* cria buffer para ler a linha de token em token */
-    string token;
-
-    lstream >> token;
+    string token = "";
+	
+	if (!(lstream >> token)){
+    continue;
+    }
+    
     if (token.at(0)==';'){
       continue;
     }
@@ -238,18 +248,31 @@ void Montador::segundaPassagem(string sourceName, string outName){
           relative << programCounter+2 << " ";
         }
       }
-      int aux = writeInstruction (OPCode,lstream,codeString,programCounter);
-      if (aux < 0){
-        cout << "Erro sintatico: construcao incorreta na linha " << lineCounter << ".\n";
-        errorFlag = true;
+      else { // opcode STOP
+      	hasStop = true;
+      }
+      if (programCounter >= dataPos){ // instrucao na section data
+      	cout << "Erro semantico: instrucao na secao de dados na linha " << lineCounter << ".\n";
+      	errorFlag = true;
       }
       else{
-        programCounter = aux;
-      }
-    }
+		  int aux = writeInstruction (OPCode,lstream,codeString,programCounter);
+		  if (aux < 0){
+		    cout << /*"Erro sintatico: argumento invalido ou erro semantico: operacao com enderecos inadequados na linha " <<*/lineCounter << ".\n";
+		    errorFlag = true;
+		  }
+		  else{
+		    programCounter = aux;
+		  }
+		}
+	}
 
     else if (isDirective (token)){
       if (token == "space"){
+      	if (programCounter < dataPos){
+      		cout << "Erro semantico: diretiva em secao inadequada na linha " << lineCounter << ".\n";
+      		errorFlag = true;
+      	}
         string token2 = "";
         lstream >> token2;
         if (token2 == ""){
@@ -258,7 +281,7 @@ void Montador::segundaPassagem(string sourceName, string outName){
         }else {
           bool isNumber = (token2.find_first_not_of("0123456789") == string::npos);
           if (isNumber==false){
-            cout << "Erro sintatico: construcao incorreta na linha " << lineCounter << ".\n";
+            cout << "Erro sintatico: argumento invalido na linha " << lineCounter << ".\n";
             errorFlag = true;
           }
           int i;
@@ -268,9 +291,19 @@ void Montador::segundaPassagem(string sourceName, string outName){
             codeString << "0 ";
           }
           programCounter += aux;
+          
+          string token3;
+          if ((lstream >> token3) && (token3!="") && (token3.at(0)!=';')){
+          	cout << "Erro sintatico: construcao incorreta na linha " << lineCounter << ".\n";
+          	errorFlag = true;
+          }
         }
       }
       else if (token == "const"){
+      	if (programCounter < dataPos){
+      		cout << "Erro semantico: diretiva em secao inadequada na linha " << lineCounter << ".\n";
+      		errorFlag = true;
+      	}
         string token2;
         lstream >> token2;
         string aux = token2;
@@ -280,32 +313,17 @@ void Montador::segundaPassagem(string sourceName, string outName){
         }
         bool isNumber = (aux.find_first_not_of("0123456789") == string::npos);
         if (isNumber==false||token2==""||token2.at(0)==';'){
-          cout << "Erro sintatico: construcao incorreta na linha " << lineCounter << ".\n";
+          cout << "Erro sintatico: argumento invalido na linha " << lineCounter << ".\n";
           errorFlag = true;
         }
         codeString << token2 << " ";
         programCounter += 1;
-      }
-      else if (token == "section"){
-        string token2;
-        lstream >> token2;
-        if (hasSection == 0){
-          if (token2 != "text"){
-            cout << "Erro semantico: Secao inadequada na linha " << lineCounter << ".\n";
-            errorFlag = true; 
-          }
-        }
-        if (hasSection == 1){
-          if (token2 != "data"){
-            cout << "Erro semantico: Secao inadequada na linha " << lineCounter << ".\n";
-            errorFlag = true;
-          }
-        }
-        if (hasSection >= 2){
-          cout << "Erro semantico: Secao inadequada na linha " << lineCounter << ".\n";
+        
+        string token3;
+        if ((lstream>>token3) && (token3!="") && (token3.at(0)!=';')){
+          cout << "Erro sintatico: construcao incorreta na linha " << lineCounter << ".\n";
           errorFlag = true;
         }
-        hasSection++;
       }
       else if (token == "begin"){
         if (isModule != 0){
@@ -326,11 +344,17 @@ void Montador::segundaPassagem(string sourceName, string outName){
       errorFlag = true;
     }
   }
-  /* escreve no arquivo de saida */
-  if (hasSection < 2){
-  	cout << "Erro semantico: nao ha secao text ou data.\n";
+  
+  if (isModule == 1){
+  	cout << "Erro semantico: modulo declarado incorretamente.\n";
   	errorFlag = true;
   }
+  if (isModule == 0 && hasStop == false){
+  	cout << "Erro semantico: programa sem funcao STOP.\n";
+  	errorFlag = true;
+  }
+  
+  /* escreve no arquivo de saida */
   
   if (errorFlag == true){
     return;
@@ -358,6 +382,7 @@ void Montador::segundaPassagem(string sourceName, string outName){
 
     out << "\nCODE\n";
   }
+  
   out << codeString.str();
   out.close();
 }
@@ -562,14 +587,20 @@ void Montador::addSymbol(string symbol, int position){
 }
 
 int Montador::writeInstruction(int OPCode, istringstream& lstream, ostringstream& sout, int pc){
+  
+  bool isJump = false;
+  if (OPCode > 4 && OPCode < 9){
+  	isJump = true;
+  }
+  
   sout << OPCode << " ";
   pc++;
   if (OPCode == 14){ /* stop */
     string arg1;
-    lstream >> arg1;
-    if (arg1 == "" || arg1.at(0) == ';'){ /* fim da linha ou comentario */
+    if(arg1 == "" || arg1.at(0) == ';'){ /* fim da linha ou comentario */
       return pc;
     }
+    cout << "Erro sintatico: construcao inadequada na linha ";
     return -1;
   }
 
@@ -577,20 +608,30 @@ int Montador::writeInstruction(int OPCode, istringstream& lstream, ostringstream
     string arg1, arg2, arg3;
     /* trata 1o argumento */
     lstream >> arg1;
+    if (isdigit(arg1.at(0))){
+      cout << "Erro lexico: gramatica incorreta na linha ";
+      return -1;
+    }
     if (arg1 == "" || arg1.at(0) == ';' || arg1.at(arg1.size()-1) != ','){ /* fim da linha ou formato incorreto*/
+      cout << "Erro sintatico: construcao inadequada na linha ";
       return -1;
     }
     arg1 = arg1.substr(0,arg1.size()-1); /* remove a virgula do operador */
-    if (writeSymbol(arg1,sout,pc)==false){ /* escreve argumento */
+    if (writeSymbol(arg1,sout,pc,isJump)==false){ /* escreve argumento */
       return -1;
     }
     pc++;
     /* trata segundo argumento */
     lstream >> arg2;
-    if (arg2 == "" || arg2.at(0) == ';'){ /* fim da linha */
+    if (isdigit(arg2.at(0))){
+      cout << "Erro lexico: gramatica incorreta na linha ";
       return -1;
     }
-    if (writeSymbol (arg2,sout,pc) == false){ /* escreve argumento */
+    if (arg2 == "" || arg2.at(0) == ';'){ /* fim da linha */
+      cout << "Erro sintatico: construcao inadequada na linha ";
+      return -1;
+    }
+    if (writeSymbol (arg2,sout,pc,isJump) == false){ /* escreve argumento */
       return -1;
     }
     pc++;
@@ -599,15 +640,23 @@ int Montador::writeInstruction(int OPCode, istringstream& lstream, ostringstream
     if (arg3 == "" || arg2.at(0) == ';'){ /* fim da linha */
       return pc;
     }
+    cout << "Erro sintatico: construcao inadequada na linha ";
     return -1;
   }
+  
   /* outros */
+  
   string arg1;
   lstream >> arg1;
   if (arg1 == "" || arg1.at(0) == ';'){ /* fim da linha ou comentario */
+  	cout << "Erro sintatico: construcao inadequada na linha ";
     return -1;
   }
-  if (writeSymbol (arg1,sout,pc) == false){
+  if (isdigit(arg1.at(0))){
+      cout << "Erro lexico: gramatica incorreta na linha ";
+      return -1;
+  }
+  if (writeSymbol (arg1,sout,pc,isJump) == false){
     return -1;
   }
   pc++;
@@ -616,10 +665,11 @@ int Montador::writeInstruction(int OPCode, istringstream& lstream, ostringstream
   if (arg2 == "" || arg2.at(0) == ';'){ /* fim da linha ou comentario */
     return pc;
   }
+  cout << "Erro sintatico: construcao inadequada na linha ";
   return -1;
 }
 
-bool Montador::writeSymbol (string arg, ostringstream& sout, int pc){
+bool Montador::writeSymbol (string arg, ostringstream& sout, int pc, bool isJump){
 
   if (arg.size()>=3){ /* pode ter operacao (a+b) */
     bool hasOp = false;
@@ -634,15 +684,23 @@ bool Montador::writeSymbol (string arg, ostringstream& sout, int pc){
       string aux = arg.substr(0,i); /* antes da operacao deve haver um simbolo valido */
       int address = getSymbolAddress(aux);
       if (address < 0){
+      	cout << "Erro sintatico: simbolo indefinido na linha ";
         return false;
       }
       if (isExternalSymbol(aux) == true){
         addToTable(aux,pc,usageTable);
       }
+      else{
+      	if (((isJump==true)&&(address>=dataPos))||((isJump==false)&&(address<dataPos))){
+      		cout << "Erro semantico: acesso a endereco inadequado na linha ";
+      		return false; // pulo para fora de TEXT ou operacao com label fora de DATA
+      	}
+      }
       aux = arg.substr(i+1,arg.size()-i); /* depois um numero natural */
 
       bool isNumber = (aux.find_first_not_of("0123456789") == string::npos);
       if (isNumber == false){
+      	cout << "Erro sintatico: construcao inadequada na linha ";
         return false;
       }
       sout << (address + atoi (aux.c_str())) << " "; /* output simbolo + offset */
@@ -652,10 +710,17 @@ bool Montador::writeSymbol (string arg, ostringstream& sout, int pc){
 
   int address = getSymbolAddress(arg); /* se nao ha operacao, o argumento deve ser um simbolo valido */
   if (address < 0){ /* simbolo invalido */
+  	cout << "Erro sintatico: simbolo indefinido na linha ";
     return false;
   }
   if (isExternalSymbol(arg) == true){
     addToTable(arg,pc,usageTable);
+  }
+  else{
+    if (((isJump==true)&&(address>=dataPos))||((isJump==false)&&(address<dataPos))){
+      cout << "Erro semantico: acesso a endereco inadequado na linha ";
+      return false; // pulo para fora de TEXT ou operacao com label fora de DATA
+    }
   }
   sout << address << " ";
   return true;
@@ -664,6 +729,8 @@ bool Montador::writeSymbol (string arg, ostringstream& sout, int pc){
 
 bool Montador::montar(string sourceName, string objectName){
   primeiraPassagem(sourceName);
-  segundaPassagem(sourceName, objectName);
+  if (errorFlag == false){
+  	segundaPassagem(sourceName, objectName);
+  }
   return errorFlag;
 }

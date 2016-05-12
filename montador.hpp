@@ -11,7 +11,6 @@ private:
 	struct Table *definitionTable;
 	struct Table *usageTable;
 	bool errorFlag;
-
 	int dataPos;
 
 	void primeiraPassagem(std::string sourceName);
@@ -28,5 +27,5 @@ private:
 	int callDirective(std::string token);
 	void generateObject(int position);
 	int writeInstruction (int OPCode,std::istringstream& lstream,std::ostringstream& sout,int pc);
-	bool writeSymbol (std::string arg,std::ostringstream& sout,int pc);
+	bool writeSymbol (std::string arg,std::ostringstream& sout,int pc, bool section);
 };
