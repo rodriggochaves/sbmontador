@@ -12,6 +12,7 @@ struct SymbolTable{
   string symbol;
   int address;
   bool external;
+  bool isConst;
   struct SymbolTable *next;
 };
 struct TabelaDiretivas{
@@ -94,13 +95,28 @@ void Montador::primeiraPassagem(string sourceName){
     }
     else if (isDirective (token)){
       if (token == "space"){
-        int token2 = -1;
+        string token2 = "";
         lstream >> token2;
-        if (token2 == -1){
+        if (token2 == ""){
           programCounter += 1;
-        }else {
-          programCounter += token2;
         }
+        else {
+          bool isNumber = (token2.find_first_not_of("0123456789") == string::npos);
+          if (isNumber==false){
+            cout << "Erro sintatico: argumento invalido na linha " << lineCounter << ".\n";
+            errorFlag = true;
+          }
+          else{
+		      int aux = stoi(token2,nullptr,10);
+		      programCounter += aux;
+		      
+		      string token3;
+		      if ((lstream >> token3) && (token3!="") && (token3.at(0)!=';')){
+		      	cout << "Erro sintatico: construcao incorreta na linha " << lineCounter << ".\n";
+		      	errorFlag = true;
+		      }
+		  }
+		}
       }
       else if (token == "const"){
         programCounter += 1;
@@ -258,8 +274,9 @@ void Montador::segundaPassagem(string sourceName, string outName){
       else{
 		  int aux = writeInstruction (OPCode,lstream,codeString,programCounter);
 		  if (aux < 0){
-		    cout << /*"Erro sintatico: argumento invalido ou erro semantico: operacao com enderecos inadequados na linha " <<*/lineCounter << ".\n";
+		    cout << lineCounter << ".\n";
 		    errorFlag = true;
+		    programCounter += OPSize(token);
 		  }
 		  else{
 		    programCounter = aux;
@@ -273,30 +290,18 @@ void Montador::segundaPassagem(string sourceName, string outName){
       		cout << "Erro semantico: diretiva em secao inadequada na linha " << lineCounter << ".\n";
       		errorFlag = true;
       	}
-        string token2 = "";
-        lstream >> token2;
-        if (token2 == ""){
-          codeString << "0 ";
-          programCounter += 1;
-        }else {
-          bool isNumber = (token2.find_first_not_of("0123456789") == string::npos);
-          if (isNumber==false){
-            cout << "Erro sintatico: argumento invalido na linha " << lineCounter << ".\n";
-            errorFlag = true;
-          }
-          int i;
-          
-          int aux = stoi(token2,nullptr,10);
-          for (i=0;i<aux;i++){
-            codeString << "0 ";
-          }
-          programCounter += aux;
-          
-          string token3;
-          if ((lstream >> token3) && (token3!="") && (token3.at(0)!=';')){
-          	cout << "Erro sintatico: construcao incorreta na linha " << lineCounter << ".\n";
-          	errorFlag = true;
-          }
+      	
+        int token2;
+        if (lstream >> token2){
+        	programCounter += token2;
+        	int i;
+        	for (i=0;i<token2;i++){
+        		codeString << "0 ";
+        	}
+        }
+        else{
+        	codeString << "0 ";
+        	programCounter += 1;
         }
       }
       else if (token == "const"){
@@ -656,6 +661,7 @@ int Montador::writeInstruction(int OPCode, istringstream& lstream, ostringstream
       cout << "Erro lexico: gramatica incorreta na linha ";
       return -1;
   }
+  
   if (writeSymbol (arg1,sout,pc,isJump) == false){
     return -1;
   }

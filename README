@@ -11,4 +11,28 @@ Instruções para compilação
 ==========================
 Utilize o comando `make main` para realizar a compilação de todos as 
 dependências. Para executar o programa, execute com 
-`./main nomePrograma1 nomePrograma2 arquivoSaida`
+
+"./main nomePrograma arquivoSaida"
+
+casa haja apenas um arquivo fonte ou
+"./main nomePrograma1 nomePrograma2 arquivoSaida"
+
+caso haja dois módulos a serem montados.
+
+Sobre o montador
+================
+Para facilitar a implementação, algumas detecções de erro foram realizdas na
+primaira passagem do montador, entre elas: seções "text" ou "data" incorretas,
+argumento invalido para "space", instrução inválida e simbolo indefinido.
+Cabe mencionar que caso esses erros sejam detectados na primeira passagem,
+a segunda passagem não será executada, o que esconderá a eventual existencia
+de outros erros até que se corrijam os que foram detectados.
+
+Sobre os arquivos de saída
+==========================
+O arquivo final de saída somente é modificado caso a compilação ocorra com sucesso,
+caso em que o conteúdo anterior do arquivo - caso exista - é deletado e substituido
+pela nova saída.
+Os arquivos "nomeProcessado.txt" e "nomeProcessadoOTemp.txt" se referem, respectivamente,
+à saída do pré processador - que serve de entrada ao montador - e à saída do montador caso
+o programa seja um módulo - que serve de entrada para o ligador.
